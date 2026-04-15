@@ -1,1 +1,1 @@
-export const categories = [];
+export { CATEGORIES } from './mockData';

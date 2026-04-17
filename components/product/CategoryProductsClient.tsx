@@ -9,6 +9,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Ghost, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { Product } from "@/types/product";
+import { normalizeProduct } from "@/lib/utils/normalizeProduct";
+import { MOCK_PRODUCTS } from "@/lib/constants/mockData";
 
 const SORT_OPTIONS = [
   { label: "Newest First", value: "new" },
@@ -21,6 +23,15 @@ interface CategoryProductsClientProps {
   categoryName: string;
 }
 
+const DB_CATEGORIES = new Set([
+  "t-shirts",
+  "hoodies",
+  "joggers",
+  "shirts",
+  "shorts",
+  "caps-and-accessories",
+]);
+
 export function CategoryProductsClient({ categorySlug, categoryName }: CategoryProductsClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -31,11 +42,26 @@ export function CategoryProductsClient({ categorySlug, categoryName }: CategoryP
   const [sortOpen, setSortOpen] = React.useState(false);
 
   const rawProducts = useQuery(api.products.list, {
-    category: categorySlug === "all" ? undefined : categorySlug,
+    category:
+      categorySlug === "all" || !DB_CATEGORIES.has(categorySlug)
+        ? undefined
+        : categorySlug,
   });
 
   const filtered = React.useMemo(() => {
-    let list = (rawProducts ?? []) as Product[];
+    let list: Product[] =
+      rawProducts === undefined
+        ? MOCK_PRODUCTS
+        : rawProducts.map(normalizeProduct);
+
+    if (DB_CATEGORIES.has(categorySlug)) {
+      list = list.filter((p) => p.category === categorySlug);
+    } else if (categorySlug === "new-in") {
+      list = list.filter((p) => p.isNew);
+    } else if (categorySlug === "sale") {
+      list = list.filter((p) => p.originalPrice > p.price);
+    }
+
     if (searchQuery) {
       list = list.filter(
         (p) =>
@@ -153,7 +179,7 @@ export function CategoryProductsClient({ categorySlug, categoryName }: CategoryP
           >
             {filtered.map((product, i) => (
               <motion.div
-                key={(product as any)._id ?? product.id}
+                key={product.id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.3 }}

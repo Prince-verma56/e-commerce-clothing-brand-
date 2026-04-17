@@ -4,6 +4,10 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/category/(.*)',
   '/products/(.*)',
+  '/search(.*)',
+  '/cart(.*)',
+  '/checkout(.*)',
+  '/wishlist(.*)',
   '/api/payment(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)'

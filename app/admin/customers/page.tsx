@@ -68,7 +68,7 @@ function CustomerRow({ user, index }: { user: ConvexUser; index: number }) {
 }
 
 export default function AdminCustomersPage() {
-  const users = useQuery(api.users.list);
+  const users = useQuery(api.users.list, {});
 
   const adminCount = users?.filter((u) => u.role === "admin").length ?? 0;
   const customerCount = users?.filter((u) => u.role === "user").length ?? 0;

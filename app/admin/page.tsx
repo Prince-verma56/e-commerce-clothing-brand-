@@ -33,7 +33,7 @@ const mockChartData: RevenueChartPoint[] = Array.from({ length: 30 }).map((_, i)
 });
 
 export default function AdminDashboard() {
-  const stats = useQuery(api.stats.getAdminStats);
+  const stats = useQuery(api.stats.getAdminStats, {});
 
   if (stats === undefined) {
     return (

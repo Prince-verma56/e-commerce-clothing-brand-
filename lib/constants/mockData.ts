@@ -13,7 +13,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#dde0e8",
     category: "t-shirts",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&q=80"
+    ]
   },
   {
     id: "2",
@@ -29,7 +33,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#e8ddd0",
     category: "t-shirts",
     isNew: true,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1503342394128-c104d54dba01?w=800&q=80",
+      "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80"
+    ]
   },
   {
     id: "3",
@@ -43,7 +51,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#d0e8d4",
     category: "hoodies",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
+      "https://images.unsplash.com/photo-1609873814058-a8928924184a?w=800&q=80"
+    ]
   },
   {
     id: "4",
@@ -57,7 +69,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#e8e0d0",
     category: "joggers",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1506629082847-11d3e392e467?w=800&q=80",
+      "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=80"
+    ]
   },
   {
     id: "5",
@@ -71,7 +87,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#e8d0d0",
     category: "shirts",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1596521799390-0d4fb1757912?w=800&q=80",
+      "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&q=80"
+    ]
   },
   {
     id: "6",
@@ -87,7 +107,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#d8d0e8",
     category: "hoodies",
     isNew: true,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1609873814058-a8928924184a?w=800&q=80",
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80"
+    ]
   },
   {
     id: "7",
@@ -101,7 +125,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#d0dce8",
     category: "t-shirts",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=80",
+      "https://images.unsplash.com/photo-1596521799390-0d4fb1757912?w=800&q=80"
+    ]
   },
   {
     id: "8",
@@ -115,7 +143,11 @@ export const MOCK_PRODUCTS: Product[] = [
     bgColor: "#e8e8d0",
     category: "t-shirts",
     isNew: false,
-    inWishlist: false
+    inWishlist: false,
+    images: [
+      "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+      "https://images.unsplash.com/photo-1503342394128-c104d54dba01?w=800&q=80"
+    ]
   }
 ];
 

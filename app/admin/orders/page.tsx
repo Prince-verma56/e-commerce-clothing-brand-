@@ -3,10 +3,8 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { DataTable, type TableConfig } from "@/components/sidebar/data-table";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Eye } from "lucide-react";
-import { formatDateShort } from "@/lib/time-anchor";
 
 type OrderRow = {
   id: string;
@@ -18,7 +16,7 @@ type OrderRow = {
 };
 
 export default function AdminOrdersPage() {
-  const orders = useQuery(api.orders.list);
+  const orders = useQuery(api.orders.list, {});
 
   if (orders === undefined) {
     return (
@@ -62,8 +60,15 @@ export default function AdminOrdersPage() {
         key: "date",
         header: "Date",
         cell: (row) => {
-          const d = new Date(row.date);
-          return <span className="text-muted-foreground text-sm">{d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>;
+          return (
+            <span className="text-muted-foreground text-sm">
+              {new Intl.DateTimeFormat("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }).format(row.date)}
+            </span>
+          );
         },
       },
       {

@@ -11,6 +11,8 @@ import { useWishlistStore } from "@/store/wishlistStore"
 import { Input } from "@/components/ui/Input"
 import MobileNav from "./MobileNav"
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import { CartDrawer } from "@/components/cart/CartDrawer"
 import { ModeToggle } from "@/components/ModeToggle"
 
@@ -27,6 +29,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = React.useState("")
   
   const { isSignedIn } = useAuth()
+  const currentUser = useQuery(api.users.getCurrent, isSignedIn ? {} : "skip")
+  const isAdmin = currentUser?.role === "admin"
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,18 +100,20 @@ export default function Navbar() {
               </button>
             </SignInButton>
           ) : (
-            <UserButton afterSignOutUrl="/">
+            <UserButton>
               <UserButton.MenuItems>
                 <UserButton.Link 
                   label="Profile" 
                   href="/profile" 
                   labelIcon={<User className="w-4 h-4" />} 
                 />
-                <UserButton.Link 
-                  label="Admin Dashboard" 
-                  href="/admin" 
-                  labelIcon={<LayoutDashboard className="w-4 h-4" />} 
-                />
+                {isAdmin ? (
+                  <UserButton.Link 
+                    label="Admin Dashboard" 
+                    href="/admin" 
+                    labelIcon={<LayoutDashboard className="w-4 h-4" />} 
+                  />
+                ) : null}
               </UserButton.MenuItems>
             </UserButton>
           )}
@@ -115,7 +121,7 @@ export default function Navbar() {
           <Link href="/wishlist" className="relative transition-transform hover:scale-110">
             <Heart className="w-5 h-5 text-foreground" />
             {wishlistCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[var(--brand-red)] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
+              <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
                 {wishlistCount}
               </span>
             )}
@@ -124,7 +130,7 @@ export default function Navbar() {
           <button onClick={() => setCartOpen(true)} className="relative transition-transform hover:scale-110">
             <ShoppingBag className="w-5 h-5 text-foreground" />
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-foreground text-background text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
+              <span className="absolute -top-1.5 -right-1.5 bg-foreground text-background text-xs w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
                 {cartCount}
               </span>
             )}

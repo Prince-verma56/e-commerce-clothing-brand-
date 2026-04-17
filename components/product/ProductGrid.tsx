@@ -8,6 +8,7 @@ import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import type { Product } from "@/types/product"
 import { Spinner } from "@/components/ui/Spinner"
+import { normalizeProduct } from "@/lib/utils/normalizeProduct"
 
 interface ProductGridProps {
   categorySlug?: string;
@@ -26,7 +27,9 @@ export function ProductGrid({ categorySlug, fallbackProducts }: ProductGridProps
     category: convexCategory
   });
 
-  const finalProducts = (dbProducts || fallbackProducts || []) as Product[];
+  const finalProducts: Product[] = dbProducts
+    ? dbProducts.map(normalizeProduct)
+    : fallbackProducts || [];
 
   const filteredProducts = React.useMemo(() => {
     let products = finalProducts
@@ -79,9 +82,9 @@ export function ProductGrid({ categorySlug, fallbackProducts }: ProductGridProps
       whileInView={{ opacity: 1, y: 0 }} 
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.6 }}
-      className="mx-6 border border-border rounded-lg overflow-hidden bg-border max-w-[1400px] xl:mx-auto"
+      className="mx-6 border border-border rounded-lg overflow-hidden bg-border max-w-7xl xl:mx-auto"
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-[1px]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
         {filteredProducts.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}

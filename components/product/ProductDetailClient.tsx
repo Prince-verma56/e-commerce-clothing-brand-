@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCartStore } from "@/store/cartStore";
@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { MOCK_PRODUCTS } from "@/lib/constants/mockData";
+import { normalizeProduct } from "@/lib/utils/normalizeProduct";
 
 /* ─── Size Guide data ──────────────────────────────────────────────────────── */
 const SIZE_GUIDE = [
@@ -103,7 +105,7 @@ function ThreeDWorkspace({ productName }: { productName: string }) {
   return (
     <div
       id="3d-workspace"
-      className="w-full aspect-[3/4] bg-secondary rounded-xl relative flex flex-col items-center justify-center border border-border overflow-hidden"
+      className="w-full aspect-3/4 bg-secondary rounded-xl relative flex flex-col items-center justify-center border border-border overflow-hidden"
     >
       {/* Animated grid backdrop */}
       <div className="absolute inset-0 opacity-20"
@@ -121,7 +123,7 @@ function ThreeDWorkspace({ productName }: { productName: string }) {
         </div>
         <div>
           <p className="font-semibold text-foreground text-sm">3D Model Canvas</p>
-          <p className="text-xs text-muted-foreground mt-1 max-w-[180px] leading-relaxed">
+          <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
             3D view for <em>{productName}</em> will render here via @react-three/fiber
           </p>
         </div>
@@ -142,6 +144,10 @@ function ThreeDWorkspace({ productName }: { productName: string }) {
 /* ─── Main Component ─────────────────────────────────────────────────────────── */
 export function ProductDetailClient({ slug }: { slug: string }) {
   const product = useQuery(api.products.getBySlug, { slug });
+  const fallbackProduct = useMemo(
+    () => MOCK_PRODUCTS.find((item) => item.slug === slug) ?? null,
+    [slug]
+  );
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState(0);
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
@@ -152,7 +158,11 @@ export function ProductDetailClient({ slug }: { slug: string }) {
   const addItem = useCartStore((s) => s.addItem);
   const { toggle, isWishlisted } = useWishlistStore();
 
-  if (product === undefined) {
+  const resolvedProduct = product ? normalizeProduct(product) : fallbackProduct;
+  const material = product?.material;
+  const careInstructions = product?.careInstructions;
+
+  if (product === undefined && !resolvedProduct) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-secondary border-t-foreground rounded-full animate-spin" />
@@ -160,7 +170,7 @@ export function ProductDetailClient({ slug }: { slug: string }) {
     );
   }
 
-  if (product === null) {
+  if (!resolvedProduct) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
         <h1 className="font-serif text-4xl mb-3">Product Not Found</h1>
@@ -172,12 +182,12 @@ export function ProductDetailClient({ slug }: { slug: string }) {
     );
   }
 
-  const wishlisted = isWishlisted(product._id as string);
-  const images = product.images?.length > 0
-    ? product.images
+  const wishlisted = isWishlisted(resolvedProduct.id);
+  const images = resolvedProduct.images && resolvedProduct.images.length > 0
+    ? resolvedProduct.images
     : ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"];
-  const discount = product.originalPrice > product.price
-    ? getDiscountPercent(product.originalPrice, product.price) : 0;
+  const discount = resolvedProduct.originalPrice > resolvedProduct.price
+    ? getDiscountPercent(resolvedProduct.originalPrice, resolvedProduct.price) : 0;
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -185,24 +195,12 @@ export function ProductDetailClient({ slug }: { slug: string }) {
       return;
     }
     const cartProduct = {
-      id: product._id as string,
-      slug: product.slug,
-      name: product.name,
-      brand: product.category,
-      price: product.price,
-      originalPrice: product.originalPrice,
-      discount,
-      colors: product.colors ?? [],
-      bgColor: "#f5f5f5",
-      category: product.category,
-      isNew: product.isNew,
+      ...resolvedProduct,
+      brand: resolvedProduct.brand || resolvedProduct.category,
       inWishlist: wishlisted,
-      images: product.images,
-      description: product.description,
-      sizes: product.sizes,
     };
     setAdding(true);
-    addItem(cartProduct as any, selectedSize);
+    addItem(cartProduct, selectedSize);
     setTimeout(() => {
       setAdding(false);
       setJustAdded(true);
@@ -213,7 +211,7 @@ export function ProductDetailClient({ slug }: { slug: string }) {
 
   const handleShare = async () => {
     try {
-      await navigator.share({ title: product.name, url: window.location.href });
+      await navigator.share({ title: resolvedProduct.name, url: window.location.href });
     } catch {
       navigator.clipboard.writeText(window.location.href);
       toast.info("Link copied to clipboard");
@@ -224,16 +222,16 @@ export function ProductDetailClient({ slug }: { slug: string }) {
     <>
       <SizeGuideModal open={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-14">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-14">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-8">
           <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
           <span>/</span>
-          <Link href={`/category/${product.category}`} className="hover:text-foreground transition-colors capitalize">
-            {product.category.replace(/-/g, " ")}
+          <Link href={`/category/${resolvedProduct.category}`} className="hover:text-foreground transition-colors capitalize">
+            {resolvedProduct.category.replace(/-/g, " ")}
           </Link>
           <span>/</span>
-          <span className="text-foreground font-medium truncate max-w-[200px]">{product.name}</span>
+          <span className="text-foreground font-medium truncate max-w-sm">{resolvedProduct.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] gap-10 lg:gap-16 items-start">
@@ -276,13 +274,13 @@ export function ProductDetailClient({ slug }: { slug: string }) {
                   className="flex gap-3 md:gap-4"
                 >
                   {/* Thumbnails */}
-                  <div className="hidden sm:flex flex-col gap-2 w-[72px] shrink-0">
+                  <div className="hidden sm:flex flex-col gap-2 w-20 shrink-0">
                     {images.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedImage(idx)}
                         className={cn(
-                          "aspect-[3/4] w-full rounded-md overflow-hidden border-2 transition-all",
+                          "aspect-3/4 w-full rounded-md overflow-hidden border-2 transition-all",
                           selectedImage === idx ? "border-foreground shadow-sm" : "border-transparent opacity-50 hover:opacity-100"
                         )}
                       >
@@ -294,17 +292,17 @@ export function ProductDetailClient({ slug }: { slug: string }) {
                   {/* Main image */}
                   <div className="flex-1 relative">
                     <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-                      {product.isNew && <span className="bg-foreground text-background text-[10px] font-bold tracking-widest px-2 py-1 rounded-sm">NEW</span>}
-                      {discount > 0 && <span className="bg-[var(--brand-red)] text-white text-[10px] font-bold px-2 py-1 rounded-sm">{discount}% OFF</span>}
+                      {resolvedProduct.isNew && <span className="bg-foreground text-background text-[10px] font-bold tracking-widest px-2 py-1 rounded-sm">NEW</span>}
+                      {discount > 0 && <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-sm">{discount}% OFF</span>}
                     </div>
                     <motion.div
                       key={selectedImage}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.25 }}
-                      className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-secondary"
+                      className="aspect-3/4 w-full rounded-xl overflow-hidden bg-secondary"
                     >
-                      <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+                      <img src={images[selectedImage]} alt={resolvedProduct.name} className="w-full h-full object-cover" />
                     </motion.div>
 
                     {/* Mobile dots */}
@@ -325,7 +323,7 @@ export function ProductDetailClient({ slug }: { slug: string }) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ThreeDWorkspace productName={product.name} />
+                  <ThreeDWorkspace productName={resolvedProduct.name} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -337,13 +335,13 @@ export function ProductDetailClient({ slug }: { slug: string }) {
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1.5">
-                  {product.category.replace(/-/g, " ")}
+                  {resolvedProduct.category.replace(/-/g, " ")}
                 </p>
-                <h1 className="font-serif text-2xl md:text-3xl leading-[1.15] text-foreground">{product.name}</h1>
+                <h1 className="font-serif text-2xl md:text-3xl leading-[1.15] text-foreground">{resolvedProduct.name}</h1>
               </div>
               <div className="flex gap-2 shrink-0 mt-1">
                 <button
-                  onClick={() => toggle({ id: product._id, ...product } as any)}
+                  onClick={() => toggle(resolvedProduct)}
                   className={cn(
                     "w-9 h-9 rounded-full border flex items-center justify-center transition-all hover:scale-110 active:scale-95",
                     wishlisted ? "border-red-300 bg-red-50 text-red-500" : "border-border text-muted-foreground hover:border-foreground"
@@ -362,11 +360,11 @@ export function ProductDetailClient({ slug }: { slug: string }) {
 
             {/* Price */}
             <div className="flex items-end gap-3 mb-6">
-              <span className="text-3xl font-bold tracking-tight">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold tracking-tight">{formatPrice(resolvedProduct.price)}</span>
               {discount > 0 && (
                 <>
-                  <span className="text-base text-muted-foreground line-through mb-0.5">{formatPrice(product.originalPrice)}</span>
-                  <span className="text-sm font-bold text-[var(--brand-red)] mb-0.5">{discount}% OFF</span>
+                  <span className="text-base text-muted-foreground line-through mb-0.5">{formatPrice(resolvedProduct.originalPrice)}</span>
+                  <span className="text-sm font-bold text-red-600 mb-0.5">{discount}% OFF</span>
                 </>
               )}
             </div>
@@ -383,12 +381,12 @@ export function ProductDetailClient({ slug }: { slug: string }) {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                {product.sizes.map((size) => (
+                {(resolvedProduct.sizes ?? []).map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
                     className={cn(
-                      "min-w-[52px] h-12 px-3 flex items-center justify-center border rounded-md text-sm font-medium transition-all",
+                      "min-w-14 h-12 px-3 flex items-center justify-center border rounded-md text-sm font-medium transition-all",
                       selectedSize === size
                         ? "border-foreground bg-foreground text-background shadow-sm"
                         : "border-border text-foreground hover:border-foreground/50"
@@ -446,29 +444,29 @@ export function ProductDetailClient({ slug }: { slug: string }) {
 
             {/* Accordions */}
             <Accordion type="multiple" className="mt-4">
-              {product.description && (
+              {resolvedProduct.description && (
                 <AccordionItem value="description">
                   <AccordionTrigger className="text-sm font-semibold">Description</AccordionTrigger>
                   <AccordionContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{resolvedProduct.description}</p>
                   </AccordionContent>
                 </AccordionItem>
               )}
-              {(product.material || product.careInstructions) && (
+              {(material || careInstructions) && (
                 <AccordionItem value="details">
                   <AccordionTrigger className="text-sm font-semibold">Product Details</AccordionTrigger>
                   <AccordionContent>
                     <dl className="text-sm space-y-2">
-                      {product.material && (
+                      {material && (
                         <div className="flex gap-2">
                           <dt className="w-28 text-muted-foreground font-medium shrink-0">Material</dt>
-                          <dd className="text-foreground">{product.material}</dd>
+                          <dd className="text-foreground">{material}</dd>
                         </div>
                       )}
-                      {product.careInstructions && (
+                      {careInstructions && (
                         <div className="flex gap-2">
                           <dt className="w-28 text-muted-foreground font-medium shrink-0">Care</dt>
-                          <dd className="text-foreground">{product.careInstructions}</dd>
+                          <dd className="text-foreground">{careInstructions}</dd>
                         </div>
                       )}
                     </dl>

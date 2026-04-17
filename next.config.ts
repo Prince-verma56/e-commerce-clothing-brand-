@@ -7,7 +7,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "**.unsplash.com",
+      },
     ],
+    // Allow unoptimized images temporarily for external sources
+    unoptimized: true,
   },
 };
 

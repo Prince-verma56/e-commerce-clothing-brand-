@@ -18,7 +18,7 @@ export default function Home() {
       <Suspense fallback={null}>
         <FilterBar />
       </Suspense>
-      <Suspense fallback={<div className="h-[400px] flex items-center justify-center text-muted-foreground text-sm">Loading products...</div>}>
+      <Suspense fallback={<div className="h-96 flex items-center justify-center text-muted-foreground text-sm">Loading products...</div>}>
         <ProductGrid fallbackProducts={MOCK_PRODUCTS} />
       </Suspense>
       <div className="flex justify-center mt-10 mb-6">

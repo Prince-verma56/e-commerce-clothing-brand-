@@ -5,6 +5,7 @@ import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ConvexClientProvider from '@/components/ConvexClientProvider';
+import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import { ClerkProvider, ClerkLoading, ClerkLoaded } from '@clerk/nextjs';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -39,23 +40,25 @@ export default function RootLayout({
         <body suppressHydrationWarning className="font-sans antialiased min-h-screen flex flex-col text-foreground bg-background">
           <ThemeProvider>
             <ConvexClientProvider>
-              <AnnouncementBar />
-              <TooltipProvider>
-                <Navbar />
+              <AuthSyncProvider>
+                <AnnouncementBar />
+                <TooltipProvider>
+                  <Navbar />
 
-                <main className="flex-1">
-                  <ClerkLoading>
-                    <div className="h-[60vh] flex items-center justify-center">
-                      <div className="w-10 h-10 border-4 border-secondary border-t-foreground rounded-full animate-spin" />
-                    </div>
-                  </ClerkLoading>
-                  <ClerkLoaded>
-                    {children}
-                  </ClerkLoaded>
-                </main>
-                <Footer />
-                <Toaster position="bottom-right" richColors />
-              </TooltipProvider>
+                  <main className="flex-1">
+                    <ClerkLoading>
+                      <div className="h-[60vh] flex items-center justify-center">
+                        <div className="w-10 h-10 border-4 border-secondary border-t-foreground rounded-full animate-spin" />
+                      </div>
+                    </ClerkLoading>
+                    <ClerkLoaded>
+                      {children}
+                    </ClerkLoaded>
+                  </main>
+                  <Footer />
+                  <Toaster position="bottom-right" richColors />
+                </TooltipProvider>
+              </AuthSyncProvider>
             </ConvexClientProvider>
           </ThemeProvider>
         </body>

@@ -16,7 +16,7 @@ export function ColorSwatch({ colors, max = 4 }: { colors: string[], max?: numbe
           title={color}
         />
       ))}
-      {excess > 0 && <span className="text-[9px] text-muted-foreground ml-0.5 font-medium">+{excess}</span>}
+      {excess > 0 && <span className="text-xs text-muted-foreground ml-0.5 font-medium">+{excess}</span>}
     </div>
   )
 }

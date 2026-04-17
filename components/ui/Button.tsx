@@ -1,33 +1,52 @@
 import * as React from "react"
+import { Slot } from "radix-ui"
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils/cn"
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "ink" | "outline-ink" | "outline" | "ghost" | "link"
-  size?: "default" | "sm" | "lg" | "icon" | "icon-sm"
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-[2px] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        ink: "bg-foreground text-background hover:opacity-90",
+        "outline-ink":
+          "border border-foreground text-foreground bg-transparent hover:bg-foreground hover:text-background",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-[2px] px-3 text-xs",
+        lg: "h-10 rounded-[2px] px-8",
+        icon: "h-9 w-9",
+        "icon-sm": "h-7 w-7",
+        "icon-xs": "h-6 w-6",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot.Root : "button"
+
     return (
-      <button
+      <Comp
         ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-[2px] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-          {
-            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
-            "bg-foreground text-background hover:opacity-90": variant === "ink",
-            "border border-foreground text-foreground bg-transparent hover:bg-foreground hover:text-background": variant === "outline-ink",
-            "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground": variant === "outline",
-            "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
-            "text-primary underline-offset-4 hover:underline": variant === "link",
-            "h-9 px-4 py-2": size === "default",
-            "h-8 rounded-[2px] px-3 text-xs": size === "sm",
-            "h-10 rounded-[2px] px-8": size === "lg",
-            "h-9 w-9": size === "icon",
-            "h-7 w-7": size === "icon-sm",
-          },
-          className
-        )}
+        className={cn(buttonVariants({ variant, size }), className)}
         {...props}
       />
     )
@@ -35,4 +54,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button }
+export { Button, buttonVariants }

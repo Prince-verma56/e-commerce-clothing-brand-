@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LayoutDashboard, Package, ShoppingBag, Users, Settings, Store } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
@@ -33,13 +32,12 @@ import { useMemo, useState } from "react";
 export function AppSidebar() {
   const { user, isSignedIn } = useUser();
   const [switchingRole, setSwitchingRole] = useState(false);
-
-  const clerkRole = user?.publicMetadata?.role as string | undefined;
-  const isAdmin = clerkRole === "admin";
+  const currentUser = useQuery(api.users.getCurrent, isSignedIn ? {} : "skip");
+  const isAdmin = currentUser?.role === "admin";
 
   // Data fetching for live badge counts
   const allProducts = useQuery(api.products.list, isAdmin ? {} : "skip");
-  const allOrders = useQuery(api.orders.list, isAdmin ? undefined : "skip");
+  const allOrders = useQuery(api.orders.list, isAdmin ? {} : "skip");
 
   const mainItems: NavItemConfig[] = useMemo(() => {
     return [
@@ -81,7 +79,7 @@ export function AppSidebar() {
     }
   ], []);
 
-  const switchRole = async (target: "customer") => {
+  const switchRole = async () => {
     if (!user?.id || switchingRole) return;
     setSwitchingRole(true);
     try {
@@ -121,7 +119,7 @@ export function AppSidebar() {
           <DropdownMenuContent align="start" className="w-52">
             <DropdownMenuLabel>Switch Workspace Role</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => switchRole("customer")}>Customer</DropdownMenuItem>
+            <DropdownMenuItem onClick={switchRole}>Customer</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarHeader>

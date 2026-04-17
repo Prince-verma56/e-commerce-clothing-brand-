@@ -98,7 +98,7 @@ export default function AdminProductsPage() {
         key: "category",
         header: "Category",
         cell: (row) => (
-          <Badge variant="secondary" className="capitalize">
+          <Badge className="capitalize bg-secondary text-foreground border-border">
             {row.category.replace(/-/g, " ")}
           </Badge>
         ),

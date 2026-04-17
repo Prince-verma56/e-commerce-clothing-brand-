@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { requireAdmin } from './lib/auth';
 
 export const list = query({
   args: { category: v.optional(v.string()) },
@@ -32,6 +33,7 @@ export const getById = query({
 });
 
 export const getFeatured = query({
+  args: {},
   handler: async (ctx) => {
     return await ctx.db
       .query('products')
@@ -58,6 +60,7 @@ export const create = mutation({
     careInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     return await ctx.db.insert('products', args);
   },
 });
@@ -81,6 +84,7 @@ export const update = mutation({
     careInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...fields } = args;
     await ctx.db.patch(id, fields);
   },
@@ -89,6 +93,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id('products') },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });

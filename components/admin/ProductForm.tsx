@@ -35,6 +35,7 @@ export const productSchema = z.object({
     .min(1, "Add at least one image URL"),
 });
 
+type ProductFormInputValues = z.input<typeof productSchema>;
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 /* ─── Flat form values → Convex-ready shape ──────────────────────────────── */
@@ -117,7 +118,7 @@ export function ProductForm({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<ProductFormValues>({
+  } = useForm<ProductFormInputValues, unknown, ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: defaultValues ?? {
       isNew: false,

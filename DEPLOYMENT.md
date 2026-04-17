@@ -11,8 +11,8 @@
 
 2. **Missing Convex Authentication Configuration**
    - **Issue**: No `convex/auth.config.ts` file for Clerk integration
-   - **Fix**: Created placeholder config files (`auth.config.ts` and `http.ts`)
-   - **Action needed**: Install `@convex-dev/auth` and configure properly
+   - **Fix**: Created Convex Clerk auth configuration
+   - **Action needed**: Ensure Clerk and Convex environment variables are set correctly
 
 3. **Tailwind CSS Arbitrary Value Warnings**
    - **Issue**: Multiple hardcoded pixel values and custom CSS variables causing build warnings
@@ -37,7 +37,7 @@ NEXT_PUBLIC_CONVEX_URL=https://your-deployment-url.convex.cloud
 ```bash
 npm install
 ```
-This will install `@convex-dev/auth` which is needed for Clerk-Convex integration.
+This will install the app dependencies used by the Clerk + Convex integration.
 
 ### 2. Configure Environment Variables
 ```bash
@@ -51,9 +51,8 @@ cp .env.example .env.local
 
 ### 3. After Installing Dependencies, Update Convex Auth
 Once `npm install` completes:
-1. Update `convex/auth.config.ts` with the @convex-dev/auth imports
-2. Update `convex/http.ts` with proper auth handling
-3. Run `npx convex dev` to push the configuration
+1. Verify `convex/auth.config.ts` matches your Clerk issuer domain
+2. Run `npx convex dev` to push the configuration
 
 ### 4. Deploy to Vercel (or your platform)
 ```bash
@@ -73,9 +72,6 @@ npm run build
 - [ ] Set appropriate Clerk redirect URIs for production domain
 
 ## Common Issues & Solutions
-
-### Error: "Cannot find module '@convex-dev/auth/server'"
-**Solution**: Run `npm install` first to install the package
 
 ### Error: "NEXT_PUBLIC_CONVEX_URL is required"
 **Solution**: Ensure `.env.local` has `NEXT_PUBLIC_CONVEX_URL` set to your Convex deployment URL
@@ -125,4 +121,3 @@ npm run build
 - [Convex Documentation](https://docs.convex.dev)
 - [Clerk Documentation](https://clerk.com/docs)
 - [Convex + Clerk Integration](https://docs.convex.dev/auth/clerk)
-- [@convex-dev/auth Package](https://www.convex.dev/components/auth)

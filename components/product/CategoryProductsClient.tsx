@@ -63,7 +63,7 @@ export function CategoryProductsClient({ categorySlug, categoryName }: CategoryP
   return (
     <div>
       {/* Controls bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-white/80 backdrop-blur-sm sticky top-16 z-30">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm sticky top-16 z-30">
         <p className="text-sm text-muted-foreground">
           {rawProducts === undefined ? (
             "Loading..."
@@ -93,7 +93,7 @@ export function CategoryProductsClient({ categorySlug, categoryName }: CategoryP
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 bg-white border border-border rounded-xl shadow-lg overflow-hidden z-50 min-w-[170px]"
+                  className="absolute right-0 top-full mt-2 bg-popover border border-border rounded-xl shadow-lg overflow-hidden z-50 min-w-[170px]"
                 >
                   {SORT_OPTIONS.map((opt) => (
                     <button

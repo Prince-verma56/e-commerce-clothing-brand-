@@ -1,4 +1,4 @@
-import { HeroSection } from "@/components/sections/HeroSection"
+import { AppleHero } from "@/components/sections/AppleHero"
 import { CategoryStrip } from "@/components/sections/CategoryStrip"
 import { TrendingTags } from "@/components/sections/TrendingTags"
 import { PromoBanner } from "@/components/sections/PromoBanner"
@@ -12,15 +12,17 @@ import { Suspense } from "react"
 export default function Home() {
   return (
     <div className="pb-10">
-      <HeroSection />
+      <AppleHero />
       <CategoryStrip />
       <TrendingTags />
-      <FilterBar />
-      <Suspense fallback={<div className="h-[400px] flex items-center justify-center">Loading products...</div>}>
+      <Suspense fallback={null}>
+        <FilterBar />
+      </Suspense>
+      <Suspense fallback={<div className="h-[400px] flex items-center justify-center text-muted-foreground text-sm">Loading products...</div>}>
         <ProductGrid fallbackProducts={MOCK_PRODUCTS} />
       </Suspense>
       <div className="flex justify-center mt-10 mb-6">
-        <button className="border border-border px-7 py-2.5 rounded-[2px] text-[13px] font-medium hover:bg-secondary transition-colors">
+        <button className="border border-border px-7 py-2.5 rounded-full text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">
           Load More
         </button>
       </div>

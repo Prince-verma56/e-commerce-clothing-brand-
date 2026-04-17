@@ -11,7 +11,7 @@ export default function ProfilePage() {
          {/* User Account Settings (Managed via Clerk UX) */}
          <div className="w-full lg:w-[60%] border border-border shadow-sm rounded-[1rem] overflow-hidden bg-background">
             <UserProfile 
-               appearance={{ 
+               appearance={{
                   elements: { 
                      rootBox: "w-full",
                      cardBox: "w-full",

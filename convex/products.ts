@@ -73,6 +73,7 @@ export const update = mutation({
     images: v.array(v.string()),
     category: v.string(),
     sizes: v.array(v.string()),
+    colors: v.optional(v.array(v.string())),
     isNew: v.boolean(),
     stock: v.number(),
     featured: v.boolean(),

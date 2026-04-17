@@ -11,27 +11,48 @@ import { Spinner } from "@/components/ui/Spinner"
 
 interface ProductGridProps {
   categorySlug?: string;
-  fallbackProducts?: Product[]; // Kept for backward compatibility if convex is offline
+  fallbackProducts?: Product[];
 }
 
 export function ProductGrid({ categorySlug, fallbackProducts }: ProductGridProps) {
   const searchParams = useSearchParams()
   const searchQuery = searchParams?.get("q")?.toLowerCase() || ""
+  const categoryFilter = searchParams?.get("category") || categorySlug
 
-  // Query convex
+  // Pass undefined for "all" so Convex returns everything
+  const convexCategory = (!categoryFilter || categoryFilter === "all") ? undefined : categoryFilter
+
   const dbProducts = useQuery(api.products.list, { 
-    category: categorySlug 
+    category: convexCategory
   });
 
   const finalProducts = (dbProducts || fallbackProducts || []) as Product[];
 
   const filteredProducts = React.useMemo(() => {
-    if (!searchQuery) return finalProducts;
-    return finalProducts.filter(p => 
-      p.name.toLowerCase().includes(searchQuery) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery))
-    );
-  }, [finalProducts, searchQuery]);
+    let products = finalProducts
+
+    // Client-side filter for special values not in Convex index
+    if (categoryFilter === "under-599") {
+      products = products.filter(p => p.price < 599)
+    } else if (categoryFilter === "new-arrivals") {
+      products = products.filter(p => p.isNew)
+    } else if (categoryFilter === "oversized") {
+      products = products.filter(p => 
+        p.name.toLowerCase().includes("oversized") || 
+        p.name.toLowerCase().includes("drop shoulder")
+      )
+    }
+
+    // Text search filter
+    if (searchQuery) {
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(searchQuery) ||
+        (p.description && p.description.toLowerCase().includes(searchQuery))
+      )
+    }
+
+    return products
+  }, [finalProducts, categoryFilter, searchQuery])
 
   if (dbProducts === undefined && !fallbackProducts) {
     return (
@@ -47,7 +68,7 @@ export function ProductGrid({ categorySlug, fallbackProducts }: ProductGridProps
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="py-20 text-center text-muted-foreground"
       >
-        No products found {searchQuery && `matching "${searchQuery}"`}.
+        No products found{searchQuery && ` matching "${searchQuery}"`}.
       </motion.div>
     )
   }

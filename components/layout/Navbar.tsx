@@ -39,7 +39,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 h-16 bg-white/80 backdrop-blur-md border-b border-border flex items-center px-6 transition-all">
+      <header className="sticky top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-border dark:border-white/10 flex items-center px-6 transition-all">
         {/* Mobile Menu Icon */}
         <div className="flex-1 md:hidden">
           <button onClick={() => setMobileMenuOpen(true)}>
@@ -91,7 +91,7 @@ export default function Navbar() {
 
           {!isSignedIn ? (
             <SignInButton mode="modal">
-              <button className="text-[13px] font-medium hidden md:block hover:text-foreground/80 transition-colors">
+              <button className="text-[13px] font-medium hidden md:block text-foreground hover:text-foreground/70 transition-colors">
                 Sign In
               </button>
             </SignInButton>

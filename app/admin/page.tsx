@@ -1,28 +1,92 @@
-import { TrendingUp, ShoppingBag, Package, Users } from 'lucide-react';
-import Link from 'next/link';
+"use client";
 
-const METRICS = [
-  { label: 'Total Revenue', value: '₹1,24,890', change: '+12.5% this month', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-  { label: 'Active Orders', value: '38', change: '+4 today', icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-  { label: 'Total Products', value: '6', change: 'Live in store', icon: Package, color: 'text-violet-500', bg: 'bg-violet-500/10' },
-  { label: 'Customers', value: '842', change: '+23 this week', icon: Users, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-];
+import { TrendingUp, ShoppingBag, Package, Users } from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { SectionCards, type StatCard } from "@/components/sidebar/section-cards";
+import { ChartAreaInteractive, type RevenueChartPoint } from "@/components/sidebar/chart-area-interactive";
+import { DashboardSkeleton } from "@/components/sidebar/dashboard-skeleton";
 
 const RECENT_ORDERS = [
-  { id: '#ORD-1042', customer: 'Priya Sharma', product: 'Urban Monochrome Tee', status: 'delivered', amount: '₹599' },
-  { id: '#ORD-1041', customer: 'Rohan Mehta', product: 'Premium Fleece Hoodie', status: 'shipped', amount: '₹1,299' },
-  { id: '#ORD-1040', customer: 'Anika Patel', product: 'Classic Chino Pants', status: 'processing', amount: '₹1,099' },
-  { id: '#ORD-1039', customer: 'Dev Kapoor', product: 'Graphic Pop Culture Tee', status: 'pending', amount: '₹699' },
+  { id: "#ORD-1042", customer: "Priya Sharma", product: "Urban Monochrome Tee", status: "delivered", amount: "₹599" },
+  { id: "#ORD-1041", customer: "Rohan Mehta", product: "Premium Fleece Hoodie", status: "shipped", amount: "₹1,299" },
+  { id: "#ORD-1040", customer: "Anika Patel", product: "Classic Chino Pants", status: "processing", amount: "₹1,099" },
+  { id: "#ORD-1039", customer: "Dev Kapoor", product: "Graphic Pop Culture Tee", status: "pending", amount: "₹699" },
 ];
 
 const STATUS_STYLES: Record<string, string> = {
-  delivered: 'bg-emerald-500/10 text-emerald-500',
-  shipped: 'bg-blue-500/10 text-blue-500',
-  processing: 'bg-amber-500/10 text-amber-500',
-  pending: 'bg-muted text-muted-foreground',
+  delivered: "bg-emerald-500/10 text-emerald-500",
+  shipped: "bg-blue-500/10 text-blue-500",
+  processing: "bg-amber-500/10 text-amber-500",
+  pending: "bg-muted text-muted-foreground",
 };
 
+// Generate Mock Data for the last 30 days
+const mockChartData: RevenueChartPoint[] = Array.from({ length: 30 }).map((_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (29 - i));
+  return {
+    date: d.toISOString().split("T")[0],
+    revenue: Math.floor(Math.random() * 5000) + 1000,
+  };
+});
+
 export default function AdminDashboard() {
+  const stats = useQuery(api.stats.getAdminStats);
+
+  if (stats === undefined) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Overview</h1>
+          <p className="text-sm text-muted-foreground mt-1">Welcome back! Here's what's happening in your store.</p>
+        </div>
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
+  const statCards: StatCard[] = [
+    {
+      id: "revenue",
+      title: "Total Revenue",
+      value: `₹${stats.totalRevenue.toLocaleString("en-IN")}`,
+      delta: "+12.5%",
+      subtitle: " vs last month",
+      trend: "up",
+      icon: TrendingUp,
+      livePulse: true,
+    },
+    {
+      id: "orders",
+      title: "Total Orders",
+      value: stats.totalOrders.toString(),
+      delta: "+4",
+      subtitle: " today",
+      trend: "up",
+      icon: ShoppingBag,
+    },
+    {
+      id: "products",
+      title: "Live Products",
+      value: stats.liveProducts.toString(),
+      delta: "In stock",
+      subtitle: "",
+      trend: "neutral",
+      icon: Package,
+    },
+    {
+      id: "customers",
+      title: "Total Customers",
+      value: stats.totalCustomers.toString(),
+      delta: "+5%",
+      subtitle: " this week",
+      trend: "up",
+      icon: Users,
+    },
+  ];
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
@@ -31,20 +95,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {METRICS.map((m) => (
-          <div key={m.label} className="bg-card border border-border rounded-xl p-5 hover:border-foreground/20 transition-all hover:shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{m.label}</span>
-              <div className={`w-9 h-9 rounded-lg ${m.bg} flex items-center justify-center`}>
-                <m.icon className={`w-4 h-4 ${m.color}`} />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-foreground">{m.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{m.change}</p>
-          </div>
-        ))}
-      </div>
+      <SectionCards stats={statCards} />
+
+      {/* Chart */}
+      <ChartAreaInteractive data={mockChartData} />
 
       {/* Recent Orders Table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -53,10 +107,10 @@ export default function AdminDashboard() {
           <Link href="/admin/orders" className="text-xs text-indigo-500 hover:underline font-medium">View all →</Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm shrink-0">
             <thead className="bg-muted/50">
               <tr>
-                {['Order ID', 'Customer', 'Product', 'Status', 'Amount'].map((h) => (
+                {["Order ID", "Customer", "Product", "Status", "Amount"].map((h) => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -66,7 +120,7 @@ export default function AdminDashboard() {
                 <tr key={o.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{o.id}</td>
                   <td className="px-6 py-4 font-medium text-foreground">{o.customer}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{o.product}</td>
+                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{o.product}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[o.status]}`}>{o.status}</span>
                   </td>

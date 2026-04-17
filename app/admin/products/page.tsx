@@ -2,131 +2,186 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { formatPrice } from "@/lib/utils/formatPrice";
+import { DataTable, type TableConfig } from "@/components/sidebar/data-table";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Edit, Trash, PlusCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Package } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import type { Id } from "@/convex/_generated/dataModel";
+
+type ProductRow = {
+  _id: string;
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  image: string;
+  isNew: boolean;
+};
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const products = useQuery(api.products.list, {});
-  const removeProduct = useMutation(api.products.remove);
+  const deleteProduct = useMutation(api.products.remove);
 
-  const handleDelete = async (id: any, name: string) => {
-    if (confirm(`Delete "${name}" permanently?`)) {
-      await removeProduct({ id });
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      await deleteProduct({ id: id as Id<"products"> });
       toast.success(`"${name}" deleted.`);
+    } catch {
+      toast.error("Failed to delete product.");
     }
   };
 
+  if (products === undefined) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-8 animate-pulse p-6">
+        <div className="h-8 w-48 bg-muted rounded" />
+        <div className="h-[400px] w-full bg-muted rounded-xl" />
+      </div>
+    );
+  }
+
+  const data: ProductRow[] = products.map((p) => ({
+    _id: p._id,
+    id: p._id,
+    slug: p.slug,
+    name: p.name,
+    category: p.category,
+    price: p.price,
+    stock: p.stock,
+    image: p.images[0] || "",
+    isNew: p.isNew,
+  }));
+
+  const config: TableConfig<ProductRow> = {
+    title: "Products Inventory",
+    description: "Manage your store's product catalog and stock levels.",
+    searchKey: "name",
+    searchPlaceholder: "Search products by name...",
+    columns: [
+      {
+        key: "image",
+        header: "Image",
+        sortable: false,
+        cell: (row) => (
+          <div className="relative size-10 rounded overflow-hidden border border-border bg-muted">
+            {row.image ? (
+              <Image src={row.image} alt={row.name} fill className="object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground">
+                No img
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "name",
+        header: "Product Name",
+        cell: (row) => (
+          <div className="flex flex-col">
+            <span className="font-medium text-foreground">{row.name}</span>
+            {row.isNew && (
+              <span className="text-[10px] text-emerald-500 font-bold uppercase">New Arrival</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "category",
+        header: "Category",
+        cell: (row) => (
+          <Badge variant="secondary" className="capitalize">
+            {row.category.replace(/-/g, " ")}
+          </Badge>
+        ),
+      },
+      {
+        key: "price",
+        header: "Price",
+        cell: (row) => (
+          <span className="font-semibold text-foreground">₹{row.price.toLocaleString("en-IN")}</span>
+        ),
+      },
+      {
+        key: "stock",
+        header: "Stock",
+        cell: (row) => (
+          <div className="flex items-center gap-2">
+            <div
+              className={`size-2 rounded-full ${
+                row.stock > 10
+                  ? "bg-emerald-500"
+                  : row.stock > 0
+                  ? "bg-amber-500"
+                  : "bg-destructive"
+              }`}
+            />
+            <span
+              className={
+                row.stock === 0 ? "text-destructive font-medium" : "text-muted-foreground"
+              }
+            >
+              {row.stock > 0 ? `${row.stock} in stock` : "Out of stock"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "actions",
+        header: "Actions",
+        sortable: false,
+        cell: (row) => (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-foreground hover:bg-secondary"
+              title="Edit"
+              onClick={() => router.push(`/admin/products/${row.slug}/edit`)}
+            >
+              <Edit className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              title="Delete"
+              onClick={() => handleDelete(row._id, row.name)}
+            >
+              <Trash className="size-3.5" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-6 px-4 pb-10">
+      <div className="flex items-center justify-between pt-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Products</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {products ? `${products.length} product${products.length !== 1 ? "s" : ""} total` : "Loading..."}
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {products.length} product{products.length !== 1 ? "s" : ""} in catalog
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Add Product
+        <Link href="/admin/products/new">
+          <Button className="gap-2 bg-foreground text-background hover:bg-foreground/85">
+            <PlusCircle className="size-4" />
+            Add Product
+          </Button>
         </Link>
       </div>
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        {products === undefined ? (
-          <div className="py-20 flex items-center justify-center gap-3 text-muted-foreground">
-            <div className="w-5 h-5 border-2 border-border border-t-indigo-500 rounded-full animate-spin" />
-            Loading products...
-          </div>
-        ) : products.length === 0 ? (
-          <div className="py-20 text-center">
-            <Package className="w-12 h-12 text-muted mx-auto mb-4" />
-            <p className="text-foreground font-medium">No products yet</p>
-            <p className="text-muted-foreground text-sm mt-1 mb-6">Add your first product to start selling.</p>
-            <Link href="/admin/products/new" className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-              Add First Product
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  {["Product", "Category", "Price", "Stock", "Tags", "Actions"].map((h) => (
-                    <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {products.map((product) => (
-                  <tr key={product._id} className="hover:bg-muted/30 transition-colors group">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-lg bg-secondary overflow-hidden shrink-0 border border-border">
-                          {product.images?.[0] ? (
-                            <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground line-clamp-1 max-w-[180px]">{product.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[180px]">{product.slug}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 capitalize text-foreground">{product.category.replace(/-/g, " ")}</td>
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-foreground">{formatPrice(product.price)}</p>
-                      {product.originalPrice > product.price && (
-                        <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice)}</p>
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        product.stock > 20 ? "bg-emerald-500/10 text-emerald-500" :
-                        product.stock > 0 ? "bg-amber-500/10 text-amber-500" :
-                        "bg-red-500/10 text-red-500"
-                      }`}>
-                        {product.stock} units
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-1.5">
-                        {product.isNew && <span className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold rounded">NEW</span>}
-                        {product.featured && <span className="px-2 py-0.5 bg-violet-500/10 text-violet-400 text-[10px] font-bold rounded">FEAT</span>}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link
-                          href={`/admin/products/${product._id}/edit`}
-                          className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(product._id, product.name)}
-                          className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable config={config} data={data} />
     </div>
   );
 }

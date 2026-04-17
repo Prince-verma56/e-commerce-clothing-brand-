@@ -4,18 +4,30 @@ import * as React from "react"
 import { FILTER_OPTIONS } from "@/lib/constants/mockData"
 import { SortDropdown } from "./SortDropdown"
 import { cn } from "@/lib/utils/cn"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
 export function FilterBar({ 
-  activeFilter = "all", 
-  onFilterChange,
   activeSort = "relevance",
-  onSortChange
+  onSortChange,
 }: { 
-  activeFilter?: string
-  onFilterChange?: (val: string) => void
   activeSort?: string
   onSortChange?: (val: string) => void
 }) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const activeFilter = searchParams.get("category") || "all"
+
+  const handleFilterChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === "all") {
+      params.delete("category")
+    } else {
+      params.set("category", value)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
   return (
     <div className="flex items-center gap-3 px-6 pb-4 overflow-x-auto scrollbar-hide max-w-[1400px] xl:mx-auto">
       <span className="text-[11px] text-muted-foreground font-medium shrink-0 pt-0.5 uppercase tracking-wide">Filter:</span>
@@ -26,7 +38,7 @@ export function FilterBar({
           return (
             <button
               key={opt.value}
-              onClick={() => onFilterChange?.(opt.value)}
+              onClick={() => handleFilterChange(opt.value)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-[12px] font-medium border transition-colors whitespace-nowrap",
                 isActive 
